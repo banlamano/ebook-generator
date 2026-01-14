@@ -3,14 +3,20 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME || 'ebook_generator',
-  process.env.DB_USER || 'root',
-  process.env.DB_PASSWORD || '',
-  {
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 3306,
-    dialect: 'mysql',
+// Support both DATABASE_URL (PostgreSQL on Render) and individual DB credentials (MySQL locally)
+let sequelize;
+
+if (process.env.DATABASE_URL) {
+  // PostgreSQL connection for Render/production
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    protocol: 'postgres',
+    dialectOptions: {
+      ssl: process.env.NODE_ENV === 'production' ? {
+        require: true,
+        rejectUnauthorized: false
+      } : false
+    },
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     pool: {
       max: 5,
@@ -22,7 +28,30 @@ const sequelize = new Sequelize(
       timestamps: true,
       underscored: true
     }
-  }
-);
+  });
+} else {
+  // MySQL connection for local development
+  sequelize = new Sequelize(
+    process.env.DB_NAME || 'ebook_generator',
+    process.env.DB_USER || 'root',
+    process.env.DB_PASSWORD || '',
+    {
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 3306,
+      dialect: 'mysql',
+      logging: process.env.NODE_ENV === 'development' ? console.log : false,
+      pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+      },
+      define: {
+        timestamps: true,
+        underscored: true
+      }
+    }
+  );
+}
 
 module.exports = sequelize;
