@@ -1,0 +1,48 @@
+# Simplified Docker Compose for Quick Testing
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: ebook-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password123
+      MYSQL_DATABASE: ebook_generator
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Backend + Frontend (Combined for simplicity)
+  app:
+    build: .
+    container_name: ebook-app
+    restart: always
+    ports:
+      - "3000:3000"
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=password123
+      - DB_NAME=ebook_generator
+      - JWT_SECRET=test_secret_key_for_local_development_min_32_chars
+      - PORT=5000
+      - CLIENT_URL=http://localhost:3000
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    command: sh -c "npm run migrate && npm run dev"
+
+volumes:
+  mysql_data:

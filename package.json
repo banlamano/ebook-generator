@@ -1,0 +1,45 @@
+{
+  "name": "ebook-ai-generator",
+  "version": "1.0.0",
+  "description": "AI-Powered Ebook Generation SaaS Platform",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server/index.js",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "node server/index.js",
+    "install-all": "npm install && cd client && npm install",
+    "migrate": "node server/migrations/migrate.js"
+  },
+  "keywords": ["ebook", "ai", "saas", "generator"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.6.5",
+    "sequelize": "^6.35.2",
+    "nodemailer": "^6.9.7",
+    "stripe": "^14.10.0",
+    "@anthropic-ai/sdk": "^0.12.0",
+    "multer": "^1.4.5-lts.1",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "express-validator": "^7.0.1",
+    "pdfkit": "^0.13.0",
+    "docx": "^8.5.0",
+    "epub-gen": "^0.1.0",
+    "uuid": "^9.0.1",
+    "aws-sdk": "^2.1505.0",
+    "sharp": "^0.33.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "concurrently": "^8.2.2"
+  }
+}
