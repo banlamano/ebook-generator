@@ -39,7 +39,7 @@
     ]
   },
   "proxy": "http://localhost:5000",
-  "resolutions": {
+  "overrides": {
     "ajv": "^8.12.0"
   }
 }
