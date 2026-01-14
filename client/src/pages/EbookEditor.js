@@ -69,7 +69,7 @@ const EbookEditor = () => {
   };
 
   const regenerateChapter = async (chapterId) => {
-    if (!confirm('This will replace the current chapter content. Continue?')) return;
+    if (!window.confirm('This will replace the current chapter content. Continue?')) return;
     
     try {
       toast.loading('Regenerating chapter...', { id: 'regen' });
@@ -95,7 +95,7 @@ const EbookEditor = () => {
   };
 
   const deleteEbook = async () => {
-    if (!confirm('Are you sure you want to delete this ebook? This action cannot be undone.')) return;
+    if (!window.confirm('Are you sure you want to delete this ebook? This action cannot be undone.')) return;
     
     try {
       await axios.delete(`/api/ebooks/${id}`);

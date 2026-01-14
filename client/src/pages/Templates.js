@@ -34,7 +34,7 @@ const Templates = () => {
     ? templates 
     : templates.filter(t => t.category === selectedCategory);
 
-  const useTemplate = (template) => {
+  const handleUseTemplate = (template) => {
     // Navigate to creator with template pre-selected
     navigate('/create-ebook', { state: { templateId: template.id } });
   };
@@ -110,7 +110,7 @@ const Templates = () => {
                 </div>
 
                 <button
-                  onClick={() => useTemplate(template)}
+                  onClick={() => handleUseTemplate(template)}
                   className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
                 >
                   Use Template

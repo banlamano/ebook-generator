@@ -25,7 +25,7 @@ const AdminTemplates = () => {
   };
 
   const deleteTemplate = async (id) => {
-    if (!confirm('Are you sure you want to delete this template?')) return;
+    if (!window.confirm('Are you sure you want to delete this template?')) return;
     
     try {
       await axios.delete(`/api/templates/${id}`);

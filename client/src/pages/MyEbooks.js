@@ -32,7 +32,7 @@ const MyEbooks = () => {
   };
 
   const deleteEbook = async (id) => {
-    if (!confirm('Are you sure you want to delete this ebook?')) return;
+    if (!window.confirm('Are you sure you want to delete this ebook?')) return;
     
     try {
       await axios.delete(`/api/ebooks/${id}`);
