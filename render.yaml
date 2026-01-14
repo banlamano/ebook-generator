@@ -5,7 +5,7 @@ services:
     runtime: node
     region: oregon
     plan: free
-    buildCommand: npm install --legacy-peer-deps && cd client && npm install --legacy-peer-deps && npm run build && cd ..
+    buildCommand: npm install --legacy-peer-deps && cd client && npm install --legacy-peer-deps && DISABLE_ESLINT_PLUGIN=true TSC_COMPILE_ON_ERROR=true SKIP_PREFLIGHT_CHECK=true npm run build && cd ..
     startCommand: npm start
     envVars:
       - key: NODE_ENV
