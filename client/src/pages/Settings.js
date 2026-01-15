@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../config/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
@@ -28,7 +28,7 @@ const Settings = () => {
     setLoading(true);
 
     try {
-      const response = await axios.put('/api/user/profile', profileData);
+      const response = await apiClient.put('/api/user/profile', profileData);
       updateUser(response.data.data);
       toast.success('Profile updated successfully');
     } catch (error) {
@@ -49,7 +49,7 @@ const Settings = () => {
     setLoading(true);
 
     try {
-      await axios.put('/api/user/password', {
+      await apiClient.put('/api/user/password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });

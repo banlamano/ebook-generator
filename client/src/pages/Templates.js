@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../config/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -19,7 +19,7 @@ const Templates = () => {
 
   const loadTemplates = async () => {
     try {
-      const response = await axios.get('/api/templates');
+      const response = await apiClient.get('/api/templates');
       setTemplates(response.data.data);
     } catch (error) {
       toast.error('Failed to load templates');

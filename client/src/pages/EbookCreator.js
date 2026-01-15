@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../config/api';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -31,7 +31,7 @@ const EbookCreator = () => {
 
   const loadTemplates = async () => {
     try {
-      const response = await axios.get('/api/templates');
+      const response = await apiClient.get('/api/templates');
       setTemplates(response.data.data);
     } catch (error) {
       console.error('Failed to load templates:', error);
@@ -54,13 +54,13 @@ const EbookCreator = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/ebooks', formData);
+      const response = await apiClient.post('/api/ebooks', formData);
       const ebookId = response.data.data.id;
       
       toast.success('Ebook created! Starting AI generation...');
       
       // Start generation
-      await axios.post(`/api/ebooks/${ebookId}/generate`);
+      await apiClient.post(`/api/ebooks/${ebookId}/generate`);
       
       navigate(`/ebook/${ebookId}/edit`);
     } catch (error) {

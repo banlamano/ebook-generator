@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../config/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -22,7 +22,7 @@ const MyEbooks = () => {
       const params = {};
       if (filterStatus) params.status = filterStatus;
       
-      const response = await axios.get('/api/ebooks', { params });
+      const response = await apiClient.get('/api/ebooks', { params });
       setEbooks(response.data.data);
     } catch (error) {
       toast.error('Failed to load ebooks');
@@ -35,7 +35,7 @@ const MyEbooks = () => {
     if (!window.confirm('Are you sure you want to delete this ebook?')) return;
     
     try {
-      await axios.delete(`/api/ebooks/${id}`);
+      await apiClient.delete(`/api/ebooks/${id}`);
       toast.success('Ebook deleted successfully');
       loadEbooks();
     } catch (error) {

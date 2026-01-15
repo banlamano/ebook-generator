@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../config/api';
 import toast from 'react-hot-toast';
 import { BookOpen, Lock, Eye, EyeOff } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -31,7 +31,7 @@ const ResetPassword = () => {
     setLoading(true);
 
     try {
-      await axios.post(`/api/auth/reset-password/${token}`, {
+      await apiClient.post(`/api/auth/reset-password/${token}`, {
         password: formData.password
       });
       toast.success('Password reset successful!');

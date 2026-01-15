@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../config/api';
 import toast from 'react-hot-toast';
 import { BookOpen, Mail, ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -15,7 +15,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      await axios.post('/api/auth/forgot-password', { email });
+      await apiClient.post('/api/auth/forgot-password', { email });
       setSent(true);
       toast.success('Password reset email sent! Check your inbox.');
     } catch (error) {

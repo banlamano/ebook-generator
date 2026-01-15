@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../config/api';
 import toast from 'react-hot-toast';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -32,7 +32,7 @@ const EbookEditor = () => {
 
   const loadEbook = async () => {
     try {
-      const response = await axios.get(`/api/ebooks/${id}`);
+      const response = await apiClient.get(`/api/ebooks/${id}`);
       setEbook(response.data.data);
       
       if (!selectedChapter && response.data.data.chapters.length > 0) {
@@ -56,7 +56,7 @@ const EbookEditor = () => {
     
     setSaving(true);
     try {
-      await axios.put(`/api/ebooks/${id}/chapters/${selectedChapter.id}`, {
+      await apiClient.put(`/api/ebooks/${id}/chapters/${selectedChapter.id}`, {
         content: editedContent
       });
       toast.success('Chapter saved successfully');
@@ -73,7 +73,7 @@ const EbookEditor = () => {
     
     try {
       toast.loading('Regenerating chapter...', { id: 'regen' });
-      await axios.post(`/api/ebooks/${id}/generate-chapter`, { chapterId });
+      await apiClient.post(`/api/ebooks/${id}/generate-chapter`, { chapterId });
       toast.success('Chapter regenerated successfully', { id: 'regen' });
       loadEbook();
     } catch (error) {
@@ -84,7 +84,7 @@ const EbookEditor = () => {
   const exportEbook = async (format) => {
     try {
       toast.loading(`Exporting to ${format.toUpperCase()}...`, { id: 'export' });
-      const response = await axios.post(`/api/ebooks/${id}/export`, { format });
+      const response = await apiClient.post(`/api/ebooks/${id}/export`, { format });
       const downloadUrl = response.data.data.downloadUrl;
       
       window.open(downloadUrl, '_blank');
@@ -98,7 +98,7 @@ const EbookEditor = () => {
     if (!window.confirm('Are you sure you want to delete this ebook? This action cannot be undone.')) return;
     
     try {
-      await axios.delete(`/api/ebooks/${id}`);
+      await apiClient.delete(`/api/ebooks/${id}`);
       toast.success('Ebook deleted successfully');
       navigate('/my-ebooks');
     } catch (error) {

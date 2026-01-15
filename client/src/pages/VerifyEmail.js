@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../config/api';
 import { BookOpen, CheckCircle, XCircle } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -15,7 +15,7 @@ const VerifyEmail = () => {
 
   const verifyEmail = async () => {
     try {
-      await axios.get(`/api/auth/verify-email/${token}`);
+      await apiClient.get(`/api/auth/verify-email/${token}`);
       setStatus('success');
       setTimeout(() => {
         navigate('/dashboard');

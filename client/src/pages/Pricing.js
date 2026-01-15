@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -19,7 +19,7 @@ const Pricing = () => {
 
   const loadPlans = async () => {
     try {
-      const response = await axios.get('/api/subscriptions/plans');
+      const response = await apiClient.get('/api/subscriptions/plans');
       setPlans(response.data.data);
     } catch (error) {
       console.error('Failed to load plans:', error);
@@ -40,7 +40,7 @@ const Pricing = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/subscriptions/create-checkout-session', {
+      const response = await apiClient.post('/api/subscriptions/create-checkout-session', {
         plan: planType
       });
       

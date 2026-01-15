@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -20,8 +20,8 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     try {
       const [statsRes, ebooksRes] = await Promise.all([
-        axios.get('/api/user/usage'),
-        axios.get('/api/ebooks?limit=5')
+        apiClient.get('/api/user/usage'),
+        apiClient.get('/api/ebooks?limit=5')
       ]);
       setStats(statsRes.data.data);
       setRecentEbooks(ebooksRes.data.data);
