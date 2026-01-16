@@ -18,7 +18,7 @@ const MyEbooks = () => {
       const params = {};
       if (filterStatus) params.status = filterStatus;
       
-      const response = await apiClient.get('/api/ebooks', { params });
+      const response = await apiClient.get('/ebooks', { params });
       setEbooks(response.data.data);
     } catch (error) {
       toast.error('Failed to load ebooks');
@@ -35,7 +35,7 @@ const MyEbooks = () => {
     if (!window.confirm('Are you sure you want to delete this ebook?')) return;
     
     try {
-      await apiClient.delete(`/api/ebooks/${id}`);
+      await apiClient.delete(`/ebooks/${id}`);
       toast.success('Ebook deleted successfully');
       loadEbooks();
     } catch (error) {

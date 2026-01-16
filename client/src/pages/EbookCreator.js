@@ -31,7 +31,7 @@ const EbookCreator = () => {
 
   const loadTemplates = async () => {
     try {
-      const response = await apiClient.get('/api/templates');
+      const response = await apiClient.get('/templates');
       setTemplates(response.data.data);
     } catch (error) {
       console.error('Failed to load templates:', error);
@@ -54,13 +54,13 @@ const EbookCreator = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.post('/api/ebooks', formData);
+      const response = await apiClient.post('/ebooks', formData);
       const ebookId = response.data.data.id;
       
       toast.success('Ebook created! Starting AI generation...');
       
       // Start generation
-      await apiClient.post(`/api/ebooks/${ebookId}/generate`);
+      await apiClient.post(`/ebooks/${ebookId}/generate`);
       
       navigate(`/ebook/${ebookId}/edit`);
     } catch (error) {

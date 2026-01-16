@@ -11,7 +11,7 @@ const VerifyEmail = () => {
 
   const verifyEmail = React.useCallback(async () => {
     try {
-      await apiClient.get(`/api/auth/verify-email/${token}`);
+      await apiClient.get(`/auth/verify-email/${token}`);
       setStatus('success');
       setTimeout(() => {
         navigate('/dashboard');

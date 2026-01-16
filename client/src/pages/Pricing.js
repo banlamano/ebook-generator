@@ -26,7 +26,7 @@ const Pricing = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.post('/api/subscriptions/create-checkout-session', {
+      const response = await apiClient.post('/subscriptions/create-checkout-session', {
         plan: planType
       });
       

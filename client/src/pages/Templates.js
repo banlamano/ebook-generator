@@ -19,7 +19,7 @@ const Templates = () => {
 
   const loadTemplates = async () => {
     try {
-      const response = await apiClient.get('/api/templates');
+      const response = await apiClient.get('/templates');
       setTemplates(response.data.data);
     } catch (error) {
       toast.error('Failed to load templates');

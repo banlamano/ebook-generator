@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../../config/api';
 import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { Users, BookOpen, DollarSign, TrendingUp, Activity } from 'lucide-react';
@@ -15,7 +15,7 @@ const AdminDashboard = () => {
 
   const loadStats = async () => {
     try {
-      const response = await axios.get('/api/admin/stats');
+      const response = await apiClient.get('/admin/stats');
       setStats(response.data.data);
     } catch (error) {
       console.error('Failed to load stats:', error);

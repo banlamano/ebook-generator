@@ -20,7 +20,7 @@ const EbookEditor = () => {
 
   const loadEbook = React.useCallback(async () => {
     try {
-      const response = await apiClient.get(`/api/ebooks/${id}`);
+      const response = await apiClient.get(`/ebooks/${id}`);
       setEbook(response.data.data);
       
       if (!selectedChapter && response.data.data.chapters.length > 0) {
@@ -56,7 +56,7 @@ const EbookEditor = () => {
     
     setSaving(true);
     try {
-      await apiClient.put(`/api/ebooks/${id}/chapters/${selectedChapter.id}`, {
+      await apiClient.put(`/ebooks/${id}/chapters/${selectedChapter.id}`, {
         content: editedContent
       });
       toast.success('Chapter saved successfully');
@@ -73,7 +73,7 @@ const EbookEditor = () => {
     
     try {
       toast.loading('Regenerating chapter...', { id: 'regen' });
-      await apiClient.post(`/api/ebooks/${id}/generate-chapter`, { chapterId });
+      await apiClient.post(`/ebooks/${id}/generate-chapter`, { chapterId });
       toast.success('Chapter regenerated successfully', { id: 'regen' });
       loadEbook();
     } catch (error) {
@@ -84,7 +84,7 @@ const EbookEditor = () => {
   const exportEbook = async (format) => {
     try {
       toast.loading(`Exporting to ${format.toUpperCase()}...`, { id: 'export' });
-      const response = await apiClient.post(`/api/ebooks/${id}/export`, { format });
+      const response = await apiClient.post(`/ebooks/${id}/export`, { format });
       const downloadUrl = response.data.data.downloadUrl;
       
       window.open(downloadUrl, '_blank');
@@ -98,7 +98,7 @@ const EbookEditor = () => {
     if (!window.confirm('Are you sure you want to delete this ebook? This action cannot be undone.')) return;
     
     try {
-      await apiClient.delete(`/api/ebooks/${id}`);
+      await apiClient.delete(`/ebooks/${id}`);
       toast.success('Ebook deleted successfully');
       navigate('/my-ebooks');
     } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../../config/api';
 import toast from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -18,7 +18,7 @@ const AdminTemplates = () => {
 
   const loadTemplates = async () => {
     try {
-      const response = await axios.get('/api/templates');
+      const response = await apiClient.get('/templates');
       setTemplates(response.data.data);
     } catch (error) {
       toast.error('Failed to load templates');
@@ -31,7 +31,7 @@ const AdminTemplates = () => {
     if (!window.confirm('Are you sure you want to delete this template?')) return;
     
     try {
-      await axios.delete(`/api/templates/${id}`);
+      await apiClient.delete(`/templates/${id}`);
       toast.success('Template deleted successfully');
       loadTemplates();
     } catch (error) {

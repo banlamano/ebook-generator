@@ -20,8 +20,8 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     try {
       const [statsRes, ebooksRes] = await Promise.all([
-        apiClient.get('/api/user/usage'),
-        apiClient.get('/api/ebooks?limit=5')
+        apiClient.get('/user/usage'),
+        apiClient.get('/ebooks?limit=5')
       ]);
       setStats(statsRes.data.data);
       setRecentEbooks(ebooksRes.data.data);

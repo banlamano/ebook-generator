@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../../config/api';
 import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { BookOpen, Search } from 'lucide-react';
@@ -15,7 +15,7 @@ const AdminEbooks = () => {
       const params = {};
       if (filterStatus) params.status = filterStatus;
       
-      const response = await axios.get('/api/admin/ebooks', { params });
+      const response = await apiClient.get('/admin/ebooks', { params });
       setEbooks(response.data.data);
     } catch (error) {
       console.error('Failed to load ebooks:', error);

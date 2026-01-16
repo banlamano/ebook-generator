@@ -31,7 +31,7 @@ const ResetPassword = () => {
     setLoading(true);
 
     try {
-      await apiClient.post(`/api/auth/reset-password/${token}`, {
+      await apiClient.post(`/auth/reset-password/${token}`, {
         password: formData.password
       });
       toast.success('Password reset successful!');

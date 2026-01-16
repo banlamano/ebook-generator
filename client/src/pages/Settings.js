@@ -28,7 +28,7 @@ const Settings = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.put('/api/user/profile', profileData);
+      const response = await apiClient.put('/user/profile', profileData);
       updateUser(response.data.data);
       toast.success('Profile updated successfully');
     } catch (error) {
@@ -49,7 +49,7 @@ const Settings = () => {
     setLoading(true);
 
     try {
-      await apiClient.put('/api/user/password', {
+      await apiClient.put('/user/password', {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../../config/api';
 import toast from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -18,7 +18,7 @@ const AdminUsers = () => {
       const params = {};
       if (filterTier) params.subscription_tier = filterTier;
       
-      const response = await axios.get('/api/admin/users', { params });
+      const response = await apiClient.get('/admin/users', { params });
       setUsers(response.data.data);
     } catch (error) {
       toast.error('Failed to load users');
@@ -36,7 +36,7 @@ const AdminUsers = () => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     
     try {
-      await axios.delete(`/api/admin/users/${id}`);
+      await apiClient.delete(`/admin/users/${id}`);
       toast.success('User deleted successfully');
       loadUsers();
     } catch (error) {
