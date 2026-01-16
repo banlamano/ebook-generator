@@ -106,7 +106,12 @@ const EbookEditor = () => {
       const response = await apiClient.post(`/ebooks/${id}/export`, { format });
       const downloadUrl = response.data.data.downloadUrl;
       
-      window.open(downloadUrl, '_blank');
+      // Build full URL using the API base URL
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:4000/api';
+      const serverUrl = baseUrl.replace('/api', '');
+      const fullUrl = `${serverUrl}${downloadUrl}`;
+      
+      window.open(fullUrl, '_blank');
       toast.success(`Ebook exported successfully`, { id: 'export' });
     } catch (error) {
       toast.error('Failed to export ebook', { id: 'export' });
