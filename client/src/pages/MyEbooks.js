@@ -13,11 +13,7 @@ const MyEbooks = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
-  useEffect(() => {
-    loadEbooks();
-  }, [filterStatus]);
-
-  const loadEbooks = async () => {
+  const loadEbooks = React.useCallback(async () => {
     try {
       const params = {};
       if (filterStatus) params.status = filterStatus;
@@ -29,7 +25,11 @@ const MyEbooks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus]);
+
+  useEffect(() => {
+    loadEbooks();
+  }, [loadEbooks]);
 
   const deleteEbook = async (id) => {
     if (!window.confirm('Are you sure you want to delete this ebook?')) return;

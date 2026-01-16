@@ -6,7 +6,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import Navbar from '../components/Navbar';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Save, Download, FileText, Edit3, Eye, Trash2, RefreshCw } from 'lucide-react';
+import { Save, Download, Eye, Trash2, RefreshCw } from 'lucide-react';
 
 const EbookEditor = () => {
   const { id } = useParams();
@@ -18,19 +18,7 @@ const EbookEditor = () => {
   const [editedContent, setEditedContent] = useState('');
   const [showPreview, setShowPreview] = useState(false);
 
-  useEffect(() => {
-    loadEbook();
-    const interval = setInterval(loadEbook, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
-  }, [id]);
-
-  useEffect(() => {
-    if (selectedChapter) {
-      setEditedContent(selectedChapter.content || '');
-    }
-  }, [selectedChapter]);
-
-  const loadEbook = async () => {
+  const loadEbook = React.useCallback(async () => {
     try {
       const response = await apiClient.get(`/api/ebooks/${id}`);
       setEbook(response.data.data);
@@ -49,7 +37,19 @@ const EbookEditor = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate, selectedChapter]);
+
+  useEffect(() => {
+    loadEbook();
+    const interval = setInterval(loadEbook, 5000); // Refresh every 5 seconds
+    return () => clearInterval(interval);
+  }, [loadEbook]);
+
+  useEffect(() => {
+    if (selectedChapter) {
+      setEditedContent(selectedChapter.content || '');
+    }
+  }, [selectedChapter]);
 
   const saveChapter = async () => {
     if (!selectedChapter) return;

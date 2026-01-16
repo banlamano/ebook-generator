@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { User, Lock, CreditCard, Bell } from 'lucide-react';
+import { User, Lock, CreditCard } from 'lucide-react';
 
 const Settings = () => {
   const { user, updateUser } = useAuth();

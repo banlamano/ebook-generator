@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../config/api';
 import { useAuth } from '../context/AuthContext';
@@ -11,20 +11,6 @@ const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [plans, setPlans] = useState(null);
-
-  useEffect(() => {
-    loadPlans();
-  }, []);
-
-  const loadPlans = async () => {
-    try {
-      const response = await apiClient.get('/api/subscriptions/plans');
-      setPlans(response.data.data);
-    } catch (error) {
-      console.error('Failed to load plans:', error);
-    }
-  };
 
   const handleSubscribe = async (planType) => {
     if (!user) {
