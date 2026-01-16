@@ -26,7 +26,8 @@ const AdminEbooks = () => {
 
   useEffect(() => {
     loadEbooks();
-  }, [loadEbooks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterStatus]);
 
   const filteredEbooks = ebooks.filter(ebook =>
     ebook.title.toLowerCase().includes(searchTerm.toLowerCase())

@@ -4,6 +4,8 @@ import toast from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { Search, Trash2 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
+import { Edit, Crown } from 'lucide-react';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -27,7 +29,8 @@ const AdminUsers = () => {
 
   useEffect(() => {
     loadUsers();
-  }, [loadUsers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterTier]);
 
   const deleteUser = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;

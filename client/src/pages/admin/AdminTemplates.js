@@ -4,6 +4,8 @@ import toast from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { BookOpen, Trash2 } from 'lucide-react';
+// eslint-disable-next-line no-unused-vars
+import { Plus, Edit } from 'lucide-react';
 
 const AdminTemplates = () => {
   const [templates, setTemplates] = useState([]);
@@ -11,6 +13,7 @@ const AdminTemplates = () => {
 
   useEffect(() => {
     loadTemplates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadTemplates = async () => {
