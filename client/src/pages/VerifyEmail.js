@@ -9,11 +9,7 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState('verifying'); // verifying, success, error
 
-  useEffect(() => {
-    verifyEmail();
-  }, [token]);
-
-  const verifyEmail = async () => {
+  const verifyEmail = React.useCallback(async () => {
     try {
       await apiClient.get(`/api/auth/verify-email/${token}`);
       setStatus('success');
@@ -23,7 +19,11 @@ const VerifyEmail = () => {
     } catch (error) {
       setStatus('error');
     }
-  };
+  }, [token, navigate]);
+
+  useEffect(() => {
+    verifyEmail();
+  }, [verifyEmail]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

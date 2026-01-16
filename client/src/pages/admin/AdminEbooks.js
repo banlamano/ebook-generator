@@ -10,11 +10,7 @@ const AdminEbooks = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
-  useEffect(() => {
-    loadEbooks();
-  }, [filterStatus]);
-
-  const loadEbooks = async () => {
+  const loadEbooks = React.useCallback(async () => {
     try {
       const params = {};
       if (filterStatus) params.status = filterStatus;
@@ -26,7 +22,11 @@ const AdminEbooks = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus]);
+
+  useEffect(() => {
+    loadEbooks();
+  }, [loadEbooks]);
 
   const filteredEbooks = ebooks.filter(ebook =>
     ebook.title.toLowerCase().includes(searchTerm.toLowerCase())

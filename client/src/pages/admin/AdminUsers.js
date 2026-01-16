@@ -3,7 +3,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { Search, Edit, Trash2, Crown } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -11,11 +11,7 @@ const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTier, setFilterTier] = useState('');
 
-  useEffect(() => {
-    loadUsers();
-  }, [filterTier]);
-
-  const loadUsers = async () => {
+  const loadUsers = React.useCallback(async () => {
     try {
       const params = {};
       if (filterTier) params.subscription_tier = filterTier;
@@ -27,7 +23,11 @@ const AdminUsers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterTier]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const deleteUser = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
