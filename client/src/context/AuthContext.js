@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
+import apiClient from '../config/api';
 
 const AuthContext = createContext();
 
@@ -17,10 +17,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  // Configure axios defaults
+  // Configure apiClient defaults
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       loadUser();
     } else {
       setLoading(false);
@@ -30,7 +29,7 @@ export const AuthProvider = ({ children }) => {
   // Load user data
   const loadUser = async () => {
     try {
-      const response = await axios.get('/api/auth/me');
+      const response = await apiClient.get('/auth/me');
       setUser(response.data.user);
     } catch (error) {
       console.error('Load user error:', error);
@@ -43,7 +42,7 @@ export const AuthProvider = ({ children }) => {
   // Register
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await apiClient.post('/auth/register', userData);
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
@@ -62,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   // Login
   const login = async (credentials) => {
     try {
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await apiClient.post('/auth/login', credentials);
       const { token, user } = response.data;
       
       localStorage.setItem('token', token);
