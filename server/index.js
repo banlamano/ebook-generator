@@ -43,8 +43,20 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/user', require('./routes/user'));
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  let dbStatus = 'unknown';
+  try {
+    await sequelize.authenticate();
+    dbStatus = 'connected';
+  } catch (err) {
+    dbStatus = 'disconnected: ' + err.message;
+  }
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    database: dbStatus,
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 // Serve static assets in production
