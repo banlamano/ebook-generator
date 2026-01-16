@@ -8,7 +8,7 @@
     "server": "nodemon server/index.js",
     "client": "cd client && npm start",
     "build": "cd client && npm run build",
-    "vercel-build": "cd client && npm install --legacy-peer-deps && CI=false npm run build && cp -r build ../build",
+    "vercel-build": "cd client && npm install --legacy-peer-deps && CI=false npm run build && cd .. && mv client/build build",
     "start": "node server/index.js",
     "install-all": "npm install && cd client && npm install",
     "migrate": "node server/migrations/migrate.js"
