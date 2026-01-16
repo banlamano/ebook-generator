@@ -1,9 +1,10 @@
 const { Sequelize } = require('sequelize');
 const dotenv = require('dotenv');
+const path = require('path');
 
 dotenv.config();
 
-// Support both DATABASE_URL (PostgreSQL on Render) and individual DB credentials (MySQL locally)
+// Support DATABASE_URL (PostgreSQL), MySQL, or SQLite for local development
 let sequelize;
 
 if (process.env.DATABASE_URL) {
@@ -24,6 +25,17 @@ if (process.env.DATABASE_URL) {
       acquire: 30000,
       idle: 10000
     },
+    define: {
+      timestamps: true,
+      underscored: true
+    }
+  });
+} else if (process.env.DB_DIALECT === 'sqlite') {
+  // SQLite connection for easy local development (no database server needed)
+  sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: path.join(__dirname, '../../database.sqlite'),
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
     define: {
       timestamps: true,
       underscored: true

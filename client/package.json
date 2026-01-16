@@ -3,21 +3,23 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@stripe/stripe-js": "^2.2.0",
+    "ajv": "^8.17.1",
+    "axios": "^1.6.2",
+    "lucide-react": "^0.295.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
-    "react-scripts": "5.0.1",
-    "axios": "^1.6.2",
-    "react-quill": "^2.0.0",
-    "lucide-react": "^0.295.0",
     "react-hot-toast": "^2.4.1",
-    "recharts": "^2.10.3",
-    "@stripe/stripe-js": "^2.2.0",
-    "react-markdown": "^9.0.1"
+    "react-markdown": "^9.0.1",
+    "react-quill": "^2.0.0",
+    "react-router-dom": "^6.20.1",
+    "react-scripts": "^5.0.1",
+    "recharts": "^2.10.3"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "vercel-build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
