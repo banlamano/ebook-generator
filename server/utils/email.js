@@ -1,17 +1,38 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
+// Only create transporter if email credentials are configured
+let transporter = null;
+
+const getTransporter = () => {
+  if (!transporter && process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT || 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+      },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 5000
+    });
   }
-});
+  return transporter;
+};
+
+// Check if email is configured
+const isEmailConfigured = () => {
+  return !!(process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
+};
 
 // Send email verification
 exports.sendVerificationEmail = async (email, token) => {
+  if (!isEmailConfigured()) {
+    console.log('Email not configured, skipping verification email');
+    return;
+  }
+  
   const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${token}`;
   
   const mailOptions = {
@@ -32,11 +53,16 @@ exports.sendVerificationEmail = async (email, token) => {
     `
   };
 
-  await transporter.sendMail(mailOptions);
+  await getTransporter().sendMail(mailOptions);
 };
 
 // Send password reset email
 exports.sendPasswordResetEmail = async (email, token) => {
+  if (!isEmailConfigured()) {
+    console.log('Email not configured, skipping password reset email');
+    throw new Error('Email service not configured');
+  }
+  
   const resetUrl = `${process.env.CLIENT_URL}/reset-password/${token}`;
   
   const mailOptions = {
@@ -57,11 +83,16 @@ exports.sendPasswordResetEmail = async (email, token) => {
     `
   };
 
-  await transporter.sendMail(mailOptions);
+  await getTransporter().sendMail(mailOptions);
 };
 
 // Send welcome email
 exports.sendWelcomeEmail = async (email, name) => {
+  if (!isEmailConfigured()) {
+    console.log('Email not configured, skipping welcome email');
+    return;
+  }
+  
   const mailOptions = {
     from: process.env.EMAIL_FROM,
     to: email,
@@ -82,5 +113,5 @@ exports.sendWelcomeEmail = async (email, name) => {
     `
   };
 
-  await transporter.sendMail(mailOptions);
+  await getTransporter().sendMail(mailOptions);
 };
