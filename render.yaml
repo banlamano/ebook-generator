@@ -1,11 +1,11 @@
 services:
-  # Web Service (Backend + Frontend)
+  # Backend API Service
   - type: web
-    name: ebook-generator
+    name: ebook-generator-api
     runtime: node
     region: oregon
     plan: free
-    buildCommand: npm install --legacy-peer-deps && cd client && npm install --legacy-peer-deps && DISABLE_ESLINT_PLUGIN=true TSC_COMPILE_ON_ERROR=true SKIP_PREFLIGHT_CHECK=true npm run build && cd ..
+    buildCommand: npm install --legacy-peer-deps
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -17,7 +17,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CLIENT_URL
-        sync: false
+        value: https://ebook-generator-alpha.vercel.app
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: EMAIL_HOST
