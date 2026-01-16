@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Configure base URL for API calls
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://ebook-generator-api.onrender.com/api';
+// Configure base URL for API calls - Updated to correct Render backend
+const API_BASE_URL = 'https://ebook-generator-api.onrender.com/api';
 
 // Create axios instance with base URL
 const apiClient = axios.create({
