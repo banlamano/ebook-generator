@@ -13,48 +13,10 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/health",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/api/auth/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/api/ebooks/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/api/templates/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/api/subscriptions/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/api/admin/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/api/user/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/client/$1"
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
