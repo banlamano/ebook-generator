@@ -270,7 +270,8 @@ exports.generateContent = async (req, res) => {
     logger.error('Generate content error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to generate ebook content'
+      message: 'Failed to generate ebook content',
+      error: error.message || 'Unknown error'
     });
   }
 };

@@ -18,18 +18,15 @@ const EbookEditor = () => {
   const [editedContent, setEditedContent] = useState('');
   const [showPreview, setShowPreview] = useState(false);
 
-  const loadEbook = React.useCallback(async () => {
+  const loadEbook = async (isInitial = false) => {
     try {
       const response = await apiClient.get(`/ebooks/${id}`);
-      setEbook(response.data.data);
+      const ebookData = response.data.data;
+      setEbook(ebookData);
       
-      if (!selectedChapter && response.data.data.chapters.length > 0) {
-        setSelectedChapter(response.data.data.chapters[0]);
-      } else if (selectedChapter) {
-        const updatedChapter = response.data.data.chapters.find(c => c.id === selectedChapter.id);
-        if (updatedChapter) {
-          setSelectedChapter(updatedChapter);
-        }
+      // Only set selected chapter on initial load or if none selected
+      if (isInitial && ebookData.chapters && ebookData.chapters.length > 0) {
+        setSelectedChapter(ebookData.chapters[0]);
       }
     } catch (error) {
       toast.error('Failed to load ebook');
@@ -37,13 +34,35 @@ const EbookEditor = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, navigate, selectedChapter]);
+  };
 
+  // Initial load
   useEffect(() => {
-    loadEbook();
-    const interval = setInterval(loadEbook, 5000); // Refresh every 5 seconds
+    loadEbook(true);
+  }, [id]);
+
+  // Polling for progress updates - only when generating
+  useEffect(() => {
+    if (!ebook || ebook.status === 'completed' || ebook.status === 'failed') {
+      return;
+    }
+    
+    const interval = setInterval(() => {
+      loadEbook(false);
+    }, 3000); // Refresh every 3 seconds while generating
+    
     return () => clearInterval(interval);
-  }, [loadEbook]);
+  }, [ebook?.status, id]);
+
+  // Update selected chapter content when chapters update
+  useEffect(() => {
+    if (selectedChapter && ebook?.chapters) {
+      const updatedChapter = ebook.chapters.find(c => c.id === selectedChapter.id);
+      if (updatedChapter && updatedChapter.content !== selectedChapter.content) {
+        setSelectedChapter(updatedChapter);
+      }
+    }
+  }, [ebook?.chapters]);
 
   useEffect(() => {
     if (selectedChapter) {
@@ -60,7 +79,7 @@ const EbookEditor = () => {
         content: editedContent
       });
       toast.success('Chapter saved successfully');
-      loadEbook();
+      loadEbook(false);
     } catch (error) {
       toast.error('Failed to save chapter');
     } finally {
@@ -75,7 +94,7 @@ const EbookEditor = () => {
       toast.loading('Regenerating chapter...', { id: 'regen' });
       await apiClient.post(`/ebooks/${id}/generate-chapter`, { chapterId });
       toast.success('Chapter regenerated successfully', { id: 'regen' });
-      loadEbook();
+      loadEbook(false);
     } catch (error) {
       toast.error('Failed to regenerate chapter', { id: 'regen' });
     }

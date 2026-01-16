@@ -83,7 +83,7 @@ npm run dev
 You need these to get started:
 
 1. **Anthropic API** (for AI generation)
-   - Get it: https://console.anthropic.com/
+   - Get it: https://console.groq.com/keys
    - Free tier available
 
 2. **Stripe Keys** (for payments)
@@ -174,7 +174,7 @@ sudo systemctl start mysql
 ```
 
 ### "AI generation failed"
-Check your `ANTHROPIC_API_KEY` in `.env`
+Check your `GROQ_API_KEY` in `.env`
 
 ### "Port already in use"
 ```bash

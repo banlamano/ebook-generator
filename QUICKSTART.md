@@ -42,8 +42,8 @@ DB_NAME=ebook_generator
 # Security (generate a random string)
 JWT_SECRET=your_random_secret_key_min_32_characters
 
-# AI - Get free key from https://console.anthropic.com/
-ANTHROPIC_API_KEY=sk-ant-xxxxx
+# AI - Get free key from https://console.groq.com/keys
+GROQ_API_KEY=gsk_xxxxx
 
 # Email - Use Gmail for testing
 EMAIL_USER=your.email@gmail.com
@@ -192,7 +192,7 @@ brew services start mysql
 ### Problem: "AI generation failed"
 **Solution:**
 1. Check your Anthropic API key in `.env`
-2. Verify you have API credits: https://console.anthropic.com/
+2. Verify you have a valid API key: https://console.groq.com/keys
 3. Check logs: `tail -f logs/error.log`
 
 ### Problem: "Port 3000 already in use"

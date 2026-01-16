@@ -1,20 +1,20 @@
-const Anthropic = require('@anthropic-ai/sdk');
+const Groq = require('groq-sdk');
 const { Ebook, Chapter, User } = require('../models');
 const logger = require('../utils/logger');
 
-// Lazy initialization of Anthropic client
-let anthropic = null;
+// Lazy initialization of Groq client
+let groq = null;
 
-const getAnthropicClient = () => {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY is not configured. Please add it to your environment variables.');
+const getGroqClient = () => {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY is not configured. Please add it to your environment variables.');
   }
-  if (!anthropic) {
-    anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY
+  if (!groq) {
+    groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY
     });
   }
-  return anthropic;
+  return groq;
 };
 
 // Generate table of contents
@@ -30,8 +30,8 @@ Tone: ${ebook.tone}
 
 Please provide ${ebook.num_chapters} chapter titles that form a logical progression and comprehensive coverage of the topic. Return only the chapter titles as a numbered list, one per line.`;
 
-    const message = await getAnthropicClient().messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+    const chatCompletion = await getGroqClient().chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 1024,
       messages: [{
         role: 'user',
@@ -39,7 +39,7 @@ Please provide ${ebook.num_chapters} chapter titles that form a logical progress
       }]
     });
 
-    const content = message.content[0].text;
+    const content = chatCompletion.choices[0].message.content;
     const chapters = content.split('\n')
       .filter(line => line.trim())
       .map(line => line.replace(/^\d+\.\s*/, '').trim())
@@ -49,7 +49,7 @@ Please provide ${ebook.num_chapters} chapter titles that form a logical progress
     return chapters;
   } catch (error) {
     logger.error('Generate TOC error:', error);
-    throw new Error('Failed to generate table of contents');
+    throw new Error(`Failed to generate table of contents: ${error.message}`);
   }
 };
 
@@ -90,8 +90,8 @@ Requirements:
 
 Write the complete chapter content now:`;
 
-    const message = await getAnthropicClient().messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+    const chatCompletion = await getGroqClient().chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 4096,
       messages: [{
         role: 'user',
@@ -99,7 +99,7 @@ Write the complete chapter content now:`;
       }]
     });
 
-    return message.content[0].text;
+    return chatCompletion.choices[0].message.content;
   } catch (error) {
     logger.error('Generate chapter content error:', error);
     throw new Error('Failed to generate chapter content');
@@ -181,8 +181,8 @@ ${content}
 
 Provide the improved version:`;
 
-    const message = await getAnthropicClient().messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+    const chatCompletion = await getGroqClient().chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 4096,
       messages: [{
         role: 'user',
@@ -190,7 +190,7 @@ Provide the improved version:`;
       }]
     });
 
-    return message.content[0].text;
+    return chatCompletion.choices[0].message.content;
   } catch (error) {
     logger.error('Improve content error:', error);
     throw new Error('Failed to improve content');

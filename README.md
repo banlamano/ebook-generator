@@ -145,7 +145,7 @@ npm run dev
 
 ### 🔑 Required API Keys
 
-1. **Anthropic API** (AI generation): https://console.anthropic.com/
+1. **Groq API** (AI generation - Free & Fast!): https://console.groq.com/keys
 2. **Stripe** (payments): https://stripe.com/
 3. **SMTP Email** (notifications): Gmail, SendGrid, etc.
 
