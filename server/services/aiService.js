@@ -2,9 +2,20 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { Ebook, Chapter, User } = require('../models');
 const logger = require('../utils/logger');
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY
-});
+// Lazy initialization of Anthropic client
+let anthropic = null;
+
+const getAnthropicClient = () => {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY is not configured. Please add it to your environment variables.');
+  }
+  if (!anthropic) {
+    anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY
+    });
+  }
+  return anthropic;
+};
 
 // Generate table of contents
 exports.generateTableOfContents = async (ebook) => {
@@ -19,7 +30,7 @@ Tone: ${ebook.tone}
 
 Please provide ${ebook.num_chapters} chapter titles that form a logical progression and comprehensive coverage of the topic. Return only the chapter titles as a numbered list, one per line.`;
 
-    const message = await anthropic.messages.create({
+    const message = await getAnthropicClient().messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 1024,
       messages: [{
@@ -79,7 +90,7 @@ Requirements:
 
 Write the complete chapter content now:`;
 
-    const message = await anthropic.messages.create({
+    const message = await getAnthropicClient().messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 4096,
       messages: [{
@@ -170,7 +181,7 @@ ${content}
 
 Provide the improved version:`;
 
-    const message = await anthropic.messages.create({
+    const message = await getAnthropicClient().messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 4096,
       messages: [{
