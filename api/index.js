@@ -27,7 +27,6 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Database initialization
 let dbInitialized = false;
-let templatesSeeded = false;
 
 const initializeDatabase = async () => {
   if (dbInitialized) return true;
@@ -39,32 +38,15 @@ const initializeDatabase = async () => {
     // Import models to register them
     require('../server/models');
     
-    // Sync database (create tables if they don't exist)
-    await sequelize.sync();
+    // Run comprehensive migration (fixes tone column, syncs DB, seeds templates, updates images)
+    const { runMigration } = require('../server/migrations/fix_tone_and_templates');
+    const migrationResult = await runMigration();
+    console.log('Database initialized:', JSON.stringify(migrationResult));
     
     dbInitialized = true;
-    console.log('Database connected successfully');
-    
-    // Auto-seed templates if none exist (only once per instance)
-    if (!templatesSeeded) {
-      try {
-        const { seedTemplates } = require('../server/migrations/seed');
-        const seedResult = await seedTemplates();
-        templatesSeeded = true;
-        if (seedResult.seeded) {
-          console.log(`Auto-seeded ${seedResult.count} templates`);
-        } else {
-          console.log(`Templates already exist: ${seedResult.count}`);
-        }
-      } catch (seedError) {
-        console.error('Warning: Failed to auto-seed templates:', seedError.message);
-        // Don't fail - server can still run
-      }
-    }
-    
     return true;
   } catch (error) {
-    console.error('Database connection failed:', error.message);
+    console.error('Database initialization failed:', error.message);
     return false;
   }
 };

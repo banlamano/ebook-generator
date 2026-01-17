@@ -6,7 +6,7 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const logger = require('./utils/logger');
 const { sequelize } = require('./models');
-const { seedTemplates } = require('./migrations/seed');
+const { runMigration } = require('./migrations/fix_tone_and_templates');
 
 // Load environment variables
 dotenv.config();
@@ -103,29 +103,22 @@ app.use((err, req, res, next) => {
 // Database connection and server start
 const PORT = process.env.PORT || 5000;
 
-sequelize.sync({ force: false })
-  .then(async () => {
-    logger.info('Database synchronized successfully');
-    
-    // Auto-seed templates if none exist
-    try {
-      const seedResult = await seedTemplates();
-      if (seedResult.seeded) {
-        logger.info(`Auto-seeded ${seedResult.count} templates on startup`);
-      }
-    } catch (seedError) {
-      logger.error('Warning: Failed to auto-seed templates:', seedError.message);
-      // Don't exit - server can still run, admin can add templates manually
-    }
+// Run migrations and start server
+(async () => {
+  try {
+    // Run comprehensive migration (fixes tone column, syncs DB, seeds templates, updates images)
+    logger.info('Initializing database...');
+    const migrationResult = await runMigration();
+    logger.info('Database initialization complete:', JSON.stringify(migrationResult));
     
     app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
     });
-  })
-  .catch(err => {
-    logger.error('Unable to connect to database:', err);
+  } catch (err) {
+    logger.error('Failed to initialize database:', err);
     process.exit(1);
-  });
+  }
+})();
 
 // Handle unhandled rejections
 process.on('unhandledRejection', (err) => {
