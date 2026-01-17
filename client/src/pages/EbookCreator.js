@@ -25,7 +25,8 @@ const EbookCreator = () => {
     target_audience: '',
     language: 'English',
     template_id: null,
-    chapter_titles: []
+    chapter_titles: [],
+    cover_image: null
   });
 
   useEffect(() => {
@@ -58,18 +59,25 @@ const EbookCreator = () => {
     const structure = template.structure || {};
     const chapters = structure.chapters || [];
     
+    // Generate a suggested title based on template name
+    const suggestedTitle = template.name.includes('Guide') || template.name.includes('Book') 
+      ? template.name 
+      : `The Complete ${template.name}`;
+    
     setFormData(prev => ({
       ...prev,
       template_id: template.id,
+      title: prev.title || suggestedTitle, // Auto-fill title if empty
       topic: template.category || prev.topic,
       description: template.description || prev.description,
       num_chapters: chapters.length || prev.num_chapters,
       words_per_chapter: structure.words_per_chapter || prev.words_per_chapter,
       tone: structure.tone || prev.tone,
-      chapter_titles: chapters
+      chapter_titles: chapters,
+      cover_image: template.preview_image || null
     }));
 
-    toast.success(`Template "${template.name}" applied! Customize as needed.`);
+    toast.success(`Template "${template.name}" applied! You can customize the title and details.`);
   };
 
   const clearTemplate = () => {

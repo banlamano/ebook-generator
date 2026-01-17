@@ -1,6 +1,65 @@
 const { Template } = require('../models');
 const logger = require('../utils/logger');
 
+// Stock images from Unsplash for each category
+const categoryImages = {
+  business: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
+  'self-help': 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&h=300&fit=crop',
+  technical: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=300&fit=crop',
+  fiction: 'https://images.unsplash.com/photo-1474932430478-367dbb6832c1?w=400&h=300&fit=crop',
+  education: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=300&fit=crop',
+  health: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+  travel: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop',
+  memoir: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&h=300&fit=crop',
+  hobby: 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=400&h=300&fit=crop',
+  parenting: 'https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=400&h=300&fit=crop',
+  spirituality: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=400&h=300&fit=crop',
+  food: 'https://images.unsplash.com/photo-1466637574441-749b8f19452f?w=400&h=300&fit=crop',
+  pets: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop',
+  lifestyle: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop'
+};
+
+// More specific images for certain template types
+const templateImages = {
+  'Business Marketing Guide': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=300&fit=crop',
+  'Startup Launch Playbook': 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop',
+  'Leadership & Management': 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=300&fit=crop',
+  'Self-Help & Personal Growth': 'https://images.unsplash.com/photo-1493836512294-502baa1986e2?w=400&h=300&fit=crop',
+  'Mindfulness & Meditation': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
+  'Financial Freedom Blueprint': 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&h=300&fit=crop',
+  'Programming Language Guide': 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=400&h=300&fit=crop',
+  'Fiction Story Structure': 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=300&fit=crop',
+  'Mystery & Thriller': 'https://images.unsplash.com/photo-1509266272358-7701da638078?w=400&h=300&fit=crop',
+  'Romance Novel': 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400&h=300&fit=crop',
+  'Science Fiction Epic': 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400&h=300&fit=crop',
+  'Fantasy Adventure': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&h=300&fit=crop',
+  'Fitness & Exercise Guide': 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop',
+  'Healthy Recipe Cookbook': 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400&h=300&fit=crop',
+  'Travel Guide': 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&h=300&fit=crop',
+  'Photography Guide': 'https://images.unsplash.com/photo-1502982720700-bfff97f2ecac?w=400&h=300&fit=crop',
+  'Dog Training Guide': 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop',
+  'Home Gardening Guide': 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=300&fit=crop',
+  'Wedding Planning Guide': 'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=300&fit=crop',
+  'Music Theory & Practice': 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=300&fit=crop',
+  'Drawing & Illustration': 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&h=300&fit=crop',
+  'International Cuisine Cookbook': 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&h=300&fit=crop',
+  'Baking & Pastry Guide': 'https://images.unsplash.com/photo-1486427944544-d2c6128c6cf7?w=400&h=300&fit=crop',
+  'Parenting Guide': 'https://images.unsplash.com/photo-1476703993599-0035a21b17a9?w=400&h=300&fit=crop',
+  'Pregnancy Journey': 'https://images.unsplash.com/photo-1493894473891-10fc1e5dbd22?w=400&h=300&fit=crop',
+  'Spiritual Growth Guide': 'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=400&h=300&fit=crop',
+  'Anxiety & Stress Management': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
+  'Real Estate Investment Guide': 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop',
+  'E-Commerce Business Guide': 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=300&fit=crop',
+  'Video Game Strategy Guide': 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400&h=300&fit=crop',
+  'Popular Science Book': 'https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=400&h=300&fit=crop',
+  'Nature & Wildlife': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&h=300&fit=crop'
+};
+
+// Helper to get image for a template
+const getTemplateImage = (name, category) => {
+  return templateImages[name] || categoryImages[category] || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=300&fit=crop';
+};
+
 // Template data for seeding
 const templateData = [
       // ============ BUSINESS TEMPLATES ============
@@ -1316,9 +1375,15 @@ async function seedTemplates() {
     logger.info('No templates found. Seeding database with professional templates...');
 
     for (const template of templateData) {
+      // Use real stock images instead of local paths
+      const templateWithImage = {
+        ...template,
+        preview_image: getTemplateImage(template.name, template.category)
+      };
+      
       await Template.findOrCreate({
         where: { name: template.name },
-        defaults: template
+        defaults: templateWithImage
       });
     }
 

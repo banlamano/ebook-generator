@@ -63,7 +63,8 @@ exports.createEbook = async (req, res) => {
       target_audience,
       language,
       template_id,
-      chapter_titles
+      chapter_titles,
+      cover_image
     } = req.body;
 
     // Validate input
@@ -92,6 +93,7 @@ exports.createEbook = async (req, res) => {
       target_audience,
       language: language || 'English',
       template_id,
+      cover_image: cover_image || null,
       metadata: Object.keys(metadata).length > 0 ? metadata : null,
       status: 'draft'
     });
