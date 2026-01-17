@@ -40,7 +40,7 @@ const Ebook = sequelize.define('Ebook', {
     defaultValue: 1000
   },
   tone: {
-    type: DataTypes.ENUM('professional', 'casual', 'academic', 'creative'),
+    type: DataTypes.STRING,
     defaultValue: 'professional'
   },
   target_audience: {

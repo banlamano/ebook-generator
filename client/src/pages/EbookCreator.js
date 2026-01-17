@@ -327,6 +327,21 @@ const EbookCreator = () => {
                   <option value="casual">Casual</option>
                   <option value="academic">Academic</option>
                   <option value="creative">Creative</option>
+                  <option value="conversational">Conversational</option>
+                  <option value="friendly">Friendly</option>
+                  <option value="educational">Educational</option>
+                  <option value="motivational">Motivational</option>
+                  <option value="inspirational">Inspirational</option>
+                  <option value="technical">Technical</option>
+                  <option value="narrative">Narrative</option>
+                  <option value="enthusiastic">Enthusiastic</option>
+                  <option value="supportive">Supportive</option>
+                  <option value="warm">Warm</option>
+                  <option value="reflective">Reflective</option>
+                  <option value="playful">Playful</option>
+                  <option value="instructional">Instructional</option>
+                  <option value="actionable">Actionable</option>
+                  <option value="encouraging">Encouraging</option>
                 </select>
               </div>
 
