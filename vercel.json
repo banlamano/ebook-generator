@@ -12,7 +12,9 @@
   "routes": [
     { "src": "/(.*)", "dest": "/client/$1" }
   ],
-  "env": {
-    "REACT_APP_API_URL": "https://ebook-generator-api.onrender.com/api"
+  "build": {
+    "env": {
+      "REACT_APP_API_URL": "https://ebook-generator-api.onrender.com/api"
+    }
   }
 }
