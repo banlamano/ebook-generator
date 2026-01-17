@@ -8,8 +8,8 @@ const logger = require('./utils/logger');
 const { sequelize } = require('./models');
 const { runMigration } = require('./migrations/fix_tone_and_templates');
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from project root (override any system env vars)
+dotenv.config({ path: path.join(__dirname, '../.env'), override: true });
 
 const app = express();
 

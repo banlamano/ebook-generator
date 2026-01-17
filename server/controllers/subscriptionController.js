@@ -1,11 +1,18 @@
 const { Subscription, Payment, User } = require('../models');
 const logger = require('../utils/logger');
 
-// Initialize Stripe only if secret key is available
+// Initialize Stripe only if secret key is available and valid
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const stripe = stripeSecretKey && stripeSecretKey !== 'your_stripe_secret_key' && stripeSecretKey.startsWith('sk_')
-  ? require('stripe')(stripeSecretKey)
-  : null;
+const isValidStripeKey = stripeSecretKey && 
+  stripeSecretKey.startsWith('sk_') && 
+  !stripeSecretKey.includes('your_stripe');
+const stripe = isValidStripeKey ? require('stripe')(stripeSecretKey) : null;
+
+if (isValidStripeKey) {
+  console.log('✅ Stripe initialized successfully');
+} else {
+  console.log('⚠️ Stripe not configured - payment features disabled');
+}
 
 // Subscription plans
 const PLANS = {
