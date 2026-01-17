@@ -20,32 +20,57 @@ const getGroqClient = () => {
 // Generate table of contents
 exports.generateTableOfContents = async (ebook) => {
   try {
-    const prompt = `Generate a table of contents for an ebook with the following details:
+    const numChapters = ebook.num_chapters || 10;
+    
+    const prompt = `Generate a table of contents for an ebook with EXACTLY ${numChapters} chapters.
 
-Title: ${ebook.title}
-Topic: ${ebook.topic}
-Number of Chapters: ${ebook.num_chapters}
-Target Audience: ${ebook.target_audience || 'General readers'}
-Tone: ${ebook.tone}
+Ebook Details:
+- Title: ${ebook.title}
+- Topic: ${ebook.topic}
+- Target Audience: ${ebook.target_audience || 'General readers'}
+- Tone: ${ebook.tone}
 
-Please provide ${ebook.num_chapters} chapter titles that form a logical progression and comprehensive coverage of the topic. Return only the chapter titles as a numbered list, one per line.`;
+IMPORTANT: You MUST provide EXACTLY ${numChapters} chapter titles - no more, no less.
+
+Requirements:
+- Create exactly ${numChapters} chapter titles
+- Titles should form a logical progression from introduction to conclusion
+- Cover the topic comprehensively
+- Make titles engaging and descriptive
+- Return ONLY the chapter titles, one per line, numbered 1 through ${numChapters}
+
+Generate the ${numChapters} chapter titles now:`;
 
     const chatCompletion = await getGroqClient().chat.completions.create({
       model: 'llama-3.3-70b-versatile',
-      max_tokens: 1024,
+      max_tokens: 2048,
+      temperature: 0.7,
       messages: [{
+        role: 'system',
+        content: `You are an expert ebook planner. When asked for ${numChapters} chapter titles, you provide EXACTLY ${numChapters} titles - never more, never less.`
+      }, {
         role: 'user',
         content: prompt
       }]
     });
 
     const content = chatCompletion.choices[0].message.content;
-    const chapters = content.split('\n')
+    let chapters = content.split('\n')
       .filter(line => line.trim())
-      .map(line => line.replace(/^\d+\.\s*/, '').trim())
-      .filter(line => line.length > 0)
-      .slice(0, ebook.num_chapters);
+      .map(line => line.replace(/^\d+\.?\s*[-:.]?\s*/, '').trim())
+      .filter(line => line.length > 0 && !line.toLowerCase().startsWith('chapter'));
 
+    // Ensure we have exactly the requested number of chapters
+    if (chapters.length > numChapters) {
+      chapters = chapters.slice(0, numChapters);
+    } else if (chapters.length < numChapters) {
+      // Fill in missing chapters with generic titles
+      for (let i = chapters.length; i < numChapters; i++) {
+        chapters.push(`${ebook.topic} - Part ${i + 1}`);
+      }
+    }
+
+    logger.info(`Generated TOC with ${chapters.length} chapters for ebook: ${ebook.title}`);
     return chapters;
   } catch (error) {
     logger.error('Generate TOC error:', error);
@@ -65,41 +90,62 @@ exports.generateChapterContent = async (ebook, chapter) => {
       .map(ch => `${ch.chapter_number}. ${ch.title}`)
       .join('\n');
 
-    const prompt = `Write Chapter ${chapter.chapter_number} of an ebook with the following specifications:
+    const targetWords = ebook.words_per_chapter || 1000;
+    
+    // Calculate max_tokens based on target word count (roughly 1.3 tokens per word + buffer)
+    // Groq's llama model max is 8192, so cap it there
+    const estimatedTokens = Math.min(Math.ceil(targetWords * 1.5) + 500, 8000);
 
-Ebook Title: ${ebook.title}
-Topic: ${ebook.topic}
-Chapter Title: ${chapter.title}
-Target Word Count: ${ebook.words_per_chapter} words
-Tone: ${ebook.tone}
-Target Audience: ${ebook.target_audience || 'General readers'}
+    const prompt = `You are writing Chapter ${chapter.chapter_number} of ${ebook.num_chapters} for an ebook.
 
-Full Table of Contents:
+CRITICAL REQUIREMENTS:
+1. You MUST write EXACTLY ${targetWords} words (minimum ${Math.floor(targetWords * 0.9)} words, maximum ${Math.ceil(targetWords * 1.1)} words)
+2. This is chapter ${chapter.chapter_number} of ${ebook.num_chapters} total chapters
+
+Ebook Details:
+- Title: ${ebook.title}
+- Topic: ${ebook.topic}
+- Chapter Title: ${chapter.title}
+- Tone: ${ebook.tone}
+- Target Audience: ${ebook.target_audience || 'General readers'}
+
+Full Table of Contents (${ebook.num_chapters} chapters):
 ${chaptersContext}
 
-${chapter.chapter_number === 1 ? 'This is the first chapter, so include an engaging introduction that sets the stage for the entire ebook.' : ''}
-${chapter.chapter_number === ebook.num_chapters ? 'This is the final chapter, so provide a strong conclusion that ties everything together.' : ''}
+${chapter.chapter_number === 1 ? 'IMPORTANT: This is the FIRST chapter - include an engaging introduction that hooks the reader and sets the stage for the entire ebook.' : ''}
+${chapter.chapter_number === ebook.num_chapters ? 'IMPORTANT: This is the FINAL chapter - provide a strong conclusion that summarizes key points and leaves the reader with actionable takeaways.' : ''}
 
-Requirements:
-- Write approximately ${ebook.words_per_chapter} words
+Writing Guidelines:
+- Write EXACTLY around ${targetWords} words - this is very important
 - Use a ${ebook.tone} tone throughout
-- Include relevant examples and explanations
-- Structure with clear subheadings
-- Make it engaging and informative
-- Ensure it flows logically with the other chapters
+- Include practical examples and clear explanations
+- Use subheadings to organize the content (use ## for subheadings)
+- Make it engaging, informative, and valuable to the reader
+- Ensure smooth transitions and logical flow
+- Do NOT include "Chapter X:" at the beginning - just start with the content
 
-Write the complete chapter content now:`;
+BEGIN WRITING THE CHAPTER NOW:`;
 
     const chatCompletion = await getGroqClient().chat.completions.create({
       model: 'llama-3.3-70b-versatile',
-      max_tokens: 4096,
+      max_tokens: estimatedTokens,
+      temperature: 0.7,
       messages: [{
+        role: 'system',
+        content: `You are an expert ebook author. You write engaging, well-structured content. You ALWAYS write the exact word count requested - no more, no less. When asked to write ${targetWords} words, you write exactly that amount.`
+      }, {
         role: 'user',
         content: prompt
       }]
     });
 
-    return chatCompletion.choices[0].message.content;
+    let content = chatCompletion.choices[0].message.content;
+    
+    // Log actual word count for debugging
+    const actualWordCount = content.split(/\s+/).length;
+    logger.info(`Chapter ${chapter.chapter_number}: Target ${targetWords} words, Generated ${actualWordCount} words`);
+
+    return content;
   } catch (error) {
     logger.error('Generate chapter content error:', error);
     throw new Error('Failed to generate chapter content');
