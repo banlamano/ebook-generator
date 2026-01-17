@@ -3,6 +3,14 @@
   "buildCommand": "cd client && npm install --legacy-peer-deps && CI=false npm run build",
   "outputDirectory": "client/build",
   "framework": null,
+  "env": {
+    "REACT_APP_API_URL": "https://ebook-generator-api.onrender.com/api"
+  },
+  "build": {
+    "env": {
+      "REACT_APP_API_URL": "https://ebook-generator-api.onrender.com/api"
+    }
+  },
   "routes": [
     { "handle": "filesystem" },
     {
