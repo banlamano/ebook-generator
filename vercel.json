@@ -1,20 +1,27 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    }
-  ],
+  "buildCommand": "cd client && npm install --legacy-peer-deps && CI=false npm run build",
+  "outputDirectory": "client/build",
+  "framework": null,
   "routes": [
-    { "src": "/(.*)", "dest": "/client/$1" }
-  ],
-  "build": {
-    "env": {
-      "REACT_APP_API_URL": "https://ebook-generator-api.onrender.com/api"
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.json"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
+  ],
+  "env": {
+    "REACT_APP_API_URL": "https://ebook-generator-api.onrender.com/api"
   }
 }

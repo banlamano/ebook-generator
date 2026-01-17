@@ -1,6 +1,11 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { Subscription, Payment, User } = require('../models');
 const logger = require('../utils/logger');
+
+// Initialize Stripe only if secret key is available
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey && stripeSecretKey !== 'your_stripe_secret_key' && stripeSecretKey.startsWith('sk_')
+  ? require('stripe')(stripeSecretKey)
+  : null;
 
 // Subscription plans
 const PLANS = {
@@ -33,6 +38,15 @@ const PLANS = {
   }
 };
 
+// Helper to check if Stripe is properly configured
+const isStripeConfigured = () => {
+  if (!stripe) {
+    logger.warn('Stripe is not configured - missing or invalid STRIPE_SECRET_KEY');
+    return false;
+  }
+  return true;
+};
+
 // @desc    Get subscription plans
 exports.getPlans = async (req, res) => {
   try {
@@ -54,10 +68,29 @@ exports.createCheckoutSession = async (req, res) => {
   try {
     const { plan } = req.body;
 
+    // Validate plan
     if (!PLANS[plan] || plan === 'free') {
       return res.status(400).json({
         success: false,
         message: 'Invalid plan selected'
+      });
+    }
+
+    // Check if Stripe is configured
+    if (!isStripeConfigured()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Payment system is not configured. Please contact support or check back later.'
+      });
+    }
+
+    // Check if price ID is configured for this plan
+    const priceId = PLANS[plan].price_id;
+    if (!priceId || priceId === `price_your_${plan}_plan_price_id` || !priceId.startsWith('price_')) {
+      logger.error(`Stripe Price ID not configured for plan: ${plan}`);
+      return res.status(503).json({
+        success: false,
+        message: `Payment for ${PLANS[plan].name} plan is not yet available. Please contact support.`
       });
     }
 
@@ -68,7 +101,7 @@ exports.createCheckoutSession = async (req, res) => {
       const customer = await stripe.customers.create({
         email: req.user.email,
         metadata: {
-          user_id: req.user.id
+          user_id: req.user.id.toString()
         }
       });
       customerId = customer.id;
@@ -78,22 +111,31 @@ exports.createCheckoutSession = async (req, res) => {
       );
     }
 
+    // Determine URLs
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
       line_items: [
         {
-          price: PLANS[plan].price_id,
+          price: priceId,
           quantity: 1
         }
       ],
       mode: 'subscription',
-      success_url: `${process.env.CLIENT_URL}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL}/pricing?canceled=true`,
+      success_url: `${clientUrl}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${clientUrl}/pricing?canceled=true`,
       metadata: {
-        user_id: req.user.id,
+        user_id: req.user.id.toString(),
         plan: plan
+      },
+      subscription_data: {
+        metadata: {
+          user_id: req.user.id.toString(),
+          plan: plan
+        }
       }
     });
 
@@ -106,15 +148,31 @@ exports.createCheckoutSession = async (req, res) => {
     });
   } catch (error) {
     logger.error('Create checkout session error:', error);
+    
+    // Provide more specific error messages
+    let message = 'Failed to create checkout session';
+    if (error.type === 'StripeAuthenticationError') {
+      message = 'Payment system authentication failed. Please contact support.';
+    } else if (error.type === 'StripeInvalidRequestError') {
+      message = 'Invalid payment configuration. Please contact support.';
+      logger.error('Stripe invalid request details:', error.message);
+    } else if (error.code === 'resource_missing') {
+      message = 'Payment plan not found. Please contact support to set up pricing.';
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to create checkout session'
+      message: message
     });
   }
 };
 
 // @desc    Handle Stripe webhooks
 exports.handleWebhook = async (req, res) => {
+  if (!isStripeConfigured()) {
+    return res.status(503).json({ error: 'Stripe not configured' });
+  }
+
   const sig = req.headers['stripe-signature'];
   let event;
 
@@ -264,6 +322,13 @@ exports.getCurrentSubscription = async (req, res) => {
 // @desc    Cancel subscription
 exports.cancelSubscription = async (req, res) => {
   try {
+    if (!isStripeConfigured()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Payment system is not configured'
+      });
+    }
+
     const subscription = await Subscription.findOne({
       where: {
         user_id: req.user.id,
@@ -301,6 +366,13 @@ exports.cancelSubscription = async (req, res) => {
 // @desc    Reactivate subscription
 exports.reactivateSubscription = async (req, res) => {
   try {
+    if (!isStripeConfigured()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Payment system is not configured'
+      });
+    }
+
     const subscription = await Subscription.findOne({
       where: {
         user_id: req.user.id,
