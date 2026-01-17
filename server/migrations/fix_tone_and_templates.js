@@ -180,11 +180,11 @@ async function runMigration() {
   try {
     logger.info('=== Starting Database Migration ===');
     
-    // Step 1: Fix tone column (before sync)
+    // Step 1: Fix tone column for PostgreSQL (before sync)
     await fixToneColumn();
     
-    // Step 2: Sync database (creates/updates tables)
-    await sequelize.sync({ alter: true });
+    // Step 2: Sync database (creates tables if they don't exist - no alter to avoid FK issues)
+    await sequelize.sync({ force: false });
     logger.info('✅ Database schema synchronized');
     
     // Step 3: Seed templates if needed

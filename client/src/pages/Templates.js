@@ -83,8 +83,21 @@ const Templates = () => {
               key={template.id}
               className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition card-hover"
             >
-              <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center relative">
-                <BookOpen className="h-16 w-16 text-indigo-600" />
+              <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center relative overflow-hidden">
+                {template.preview_image ? (
+                  <img 
+                    src={template.preview_image} 
+                    alt={template.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className={`absolute inset-0 flex items-center justify-center ${template.preview_image ? 'hidden' : ''}`}>
+                  <BookOpen className="h-16 w-16 text-indigo-600" />
+                </div>
                 {template.is_premium && (
                   <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
                     <Crown className="h-3 w-3" />

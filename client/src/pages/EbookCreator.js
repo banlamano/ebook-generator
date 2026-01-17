@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import apiClient from '../config/api';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { BookOpen, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
+import { BookOpen, ArrowRight, ArrowLeft, Sparkles, Crown } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
 
 const EbookCreator = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useContext(AuthContext);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  
+  // Chapter limits based on subscription
+  const isPremium = user?.subscription_tier === 'pro' || user?.subscription_tier === 'enterprise';
+  const maxChapters = isPremium ? 100 : 50;
+  const maxWordsPerChapter = isPremium ? 10000 : 5000;
   
   const [formData, setFormData] = useState({
     title: '',
@@ -280,25 +287,40 @@ const EbookCreator = () => {
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Ebook Parameters</h2>
               
+              {/* Premium Benefits Notice */}
+              {!isPremium && (
+                <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Crown className="h-5 w-5 text-yellow-600" />
+                    <span className="text-sm text-yellow-800">
+                      <strong>Upgrade to Premium</strong> for up to 100 chapters and 10,000 words per chapter!
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Number of Chapters (5-20)
+                    Number of Chapters (3-{maxChapters})
                   </label>
                   <input
                     type="number"
                     name="num_chapters"
                     value={formData.num_chapters}
                     onChange={handleChange}
-                    min="5"
-                    max="20"
+                    min="3"
+                    max={maxChapters}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {isPremium ? 'Premium: Up to 100 chapters' : `Free: Up to ${maxChapters} chapters`}
+                  </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Words per Chapter (500-5000)
+                    Words per Chapter (500-{maxWordsPerChapter.toLocaleString()})
                   </label>
                   <input
                     type="number"
@@ -306,10 +328,13 @@ const EbookCreator = () => {
                     value={formData.words_per_chapter}
                     onChange={handleChange}
                     min="500"
-                    max="5000"
+                    max={maxWordsPerChapter}
                     step="100"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {isPremium ? 'Premium: Up to 10,000 words' : `Free: Up to ${maxWordsPerChapter.toLocaleString()} words`}
+                  </p>
                 </div>
               </div>
 
