@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Configure base URL for API calls - uses environment variable with fallback
+// Configure base URL - Updated: 2026-01-17 20:35:57 for API calls - uses environment variable with fallback
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000/api';
 
 console.log('API Base URL:', API_BASE_URL); // Debug log
@@ -50,3 +50,4 @@ apiClient.interceptors.response.use(
 
 export default apiClient;
 export { API_BASE_URL };
+
