@@ -17,8 +17,8 @@ const getGroqClient = () => {
   return groq;
 };
 
-// Generate table of contents
-exports.generateTableOfContents = async (ebook) => {
+// Generate table of contents with retry logic
+exports.generateTableOfContents = async (ebook, retryCount = 0) => {
   try {
     const numChapters = ebook.num_chapters || 10;
     
@@ -41,8 +41,15 @@ Requirements:
 
 Generate the ${numChapters} chapter titles now:`;
 
+    // Try primary model first, fallback to smaller model on rate limit
+    const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it'];
+    const modelIndex = Math.min(retryCount, models.length - 1);
+    const model = models[modelIndex];
+
+    logger.info(`Generating TOC using model: ${model}`);
+
     const chatCompletion = await getGroqClient().chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: model,
       max_tokens: 2048,
       temperature: 0.7,
       messages: [{
@@ -73,13 +80,24 @@ Generate the ${numChapters} chapter titles now:`;
     logger.info(`Generated TOC with ${chapters.length} chapters for ebook: ${ebook.title}`);
     return chapters;
   } catch (error) {
-    logger.error('Generate TOC error:', error);
-    throw new Error(`Failed to generate table of contents: ${error.message}`);
+    // Handle rate limiting with retry
+    if (error.status === 429 && retryCount < 3) {
+      logger.warn(`Rate limit hit for TOC generation, retrying with different model...`);
+      
+      // Wait before retrying (exponential backoff)
+      const waitTime = Math.pow(2, retryCount) * 5000; // 5s, 10s, 20s
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      
+      return exports.generateTableOfContents(ebook, retryCount + 1);
+    }
+    
+    logger.error('Generate TOC error:', error.message || error);
+    throw new Error(`Failed to generate table of contents: ${error.message || 'Unknown error'}`);
   }
 };
 
-// Generate chapter content
-exports.generateChapterContent = async (ebook, chapter) => {
+// Generate chapter content with retry logic
+exports.generateChapterContent = async (ebook, chapter, retryCount = 0) => {
   try {
     const allChapters = await Chapter.findAll({
       where: { ebook_id: ebook.id },
@@ -93,7 +111,6 @@ exports.generateChapterContent = async (ebook, chapter) => {
     const targetWords = ebook.words_per_chapter || 1000;
     
     // Calculate max_tokens based on target word count (roughly 1.3 tokens per word + buffer)
-    // Groq's llama model max is 8192, so cap it there
     const estimatedTokens = Math.min(Math.ceil(targetWords * 1.5) + 500, 8000);
 
     const prompt = `You are writing Chapter ${chapter.chapter_number} of ${ebook.num_chapters} for an ebook.
@@ -126,8 +143,15 @@ Writing Guidelines:
 
 BEGIN WRITING THE CHAPTER NOW:`;
 
+    // Try primary model first, fallback to smaller model on rate limit
+    const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it'];
+    const modelIndex = Math.min(retryCount, models.length - 1);
+    const model = models[modelIndex];
+
+    logger.info(`Generating chapter ${chapter.chapter_number} using model: ${model}`);
+
     const chatCompletion = await getGroqClient().chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: model,
       max_tokens: estimatedTokens,
       temperature: 0.7,
       messages: [{
@@ -147,8 +171,24 @@ BEGIN WRITING THE CHAPTER NOW:`;
 
     return content;
   } catch (error) {
-    logger.error('Generate chapter content error:', error);
-    throw new Error('Failed to generate chapter content');
+    // Handle rate limiting with retry
+    if (error.status === 429 && retryCount < 3) {
+      logger.warn(`Rate limit hit for chapter ${chapter.chapter_number}, retrying with different model...`);
+      
+      // Wait before retrying (exponential backoff)
+      const waitTime = Math.pow(2, retryCount) * 5000; // 5s, 10s, 20s
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+      
+      return exports.generateChapterContent(ebook, chapter, retryCount + 1);
+    }
+    
+    logger.error('Generate chapter content error:', error.message || error);
+    
+    // Provide more specific error messages
+    if (error.status === 429) {
+      throw new Error('API rate limit exceeded. Please try again later or upgrade your API plan.');
+    }
+    throw new Error('Failed to generate chapter content: ' + (error.message || 'Unknown error'));
   }
 };
 
@@ -167,13 +207,23 @@ exports.generateAllChapters = async (ebookId, userId) => {
       throw new Error('Ebook not found');
     }
 
+    logger.info(`Starting generation for ebook ${ebookId} with ${ebook.chapters.length} chapters`);
+
     let totalWords = 0;
+    const numChapters = ebook.chapters.length;
 
     for (const chapter of ebook.chapters) {
       try {
+        logger.info(`Generating chapter ${chapter.chapter_number}/${numChapters}: ${chapter.title}`);
         await chapter.update({ status: 'generating' });
 
-        const content = await this.generateChapterContent(ebook, chapter);
+        // Use exports.generateChapterContent to maintain proper reference
+        const content = await exports.generateChapterContent(ebook, chapter);
+        
+        if (!content || content.length === 0) {
+          throw new Error('Empty content received from AI');
+        }
+        
         const wordCount = content.split(/\s+/).length;
         totalWords += wordCount;
 
@@ -183,17 +233,20 @@ exports.generateAllChapters = async (ebookId, userId) => {
           status: 'completed'
         });
 
+        logger.info(`Chapter ${chapter.chapter_number} completed: ${wordCount} words`);
+
         // Update progress
-        const progress = Math.round((chapter.chapter_number / ebook.num_chapters) * 100);
+        const progress = Math.round((chapter.chapter_number / numChapters) * 100);
         await ebook.update({
           generation_progress: progress,
           total_words: totalWords
         });
 
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Delay to avoid rate limiting (2 seconds between chapters)
+        await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (chapterError) {
-        logger.error(`Error generating chapter ${chapter.chapter_number}:`, chapterError);
+        logger.error(`Error generating chapter ${chapter.chapter_number}:`, chapterError.message);
+        logger.error('Full error:', chapterError);
         await chapter.update({ status: 'failed' });
       }
     }
@@ -207,7 +260,8 @@ exports.generateAllChapters = async (ebookId, userId) => {
 
     logger.info(`Ebook ${ebookId} generation completed with ${totalWords} total words`);
   } catch (error) {
-    logger.error('Generate all chapters error:', error);
+    logger.error('Generate all chapters error:', error.message);
+    logger.error('Full error:', error);
     
     // Mark ebook as failed
     await Ebook.update(
