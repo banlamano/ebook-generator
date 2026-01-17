@@ -50,9 +50,22 @@ const isStripeConfigured = () => {
 // @desc    Get subscription plans
 exports.getPlans = async (req, res) => {
   try {
+    // Include payment availability status
+    const stripeConfigured = isStripeConfigured();
+    const plansWithStatus = {};
+    
+    for (const [key, plan] of Object.entries(PLANS)) {
+      plansWithStatus[key] = {
+        ...plan,
+        // Free plan is always available, paid plans depend on Stripe config
+        available: key === 'free' ? true : stripeConfigured && plan.price_id && plan.price_id.startsWith('price_')
+      };
+    }
+    
     res.json({
       success: true,
-      data: PLANS
+      data: plansWithStatus,
+      paymentConfigured: stripeConfigured
     });
   } catch (error) {
     logger.error('Get plans error:', error);

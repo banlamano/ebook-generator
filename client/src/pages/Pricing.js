@@ -1,16 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../config/api';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Check, Zap } from 'lucide-react';
+import { Check, Zap, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Pricing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [paymentConfigured, setPaymentConfigured] = useState(true);
+  const [planAvailability, setPlanAvailability] = useState({});
+
+  // Check payment system status on mount
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      try {
+        const response = await apiClient.get('/subscriptions/plans');
+        setPaymentConfigured(response.data.paymentConfigured);
+        // Extract availability from plans
+        const availability = {};
+        for (const [key, plan] of Object.entries(response.data.data)) {
+          availability[key] = plan.available;
+        }
+        setPlanAvailability(availability);
+      } catch (error) {
+        console.error('Failed to check payment status:', error);
+      }
+    };
+    checkPaymentStatus();
+  }, []);
 
   const handleSubscribe = async (planType) => {
     if (!user) {
@@ -19,7 +40,17 @@ const Pricing = () => {
     }
 
     if (planType === 'free') {
-      toast.error('You are already on the free plan');
+      toast.success('You are on the free plan. Start creating ebooks!');
+      navigate('/dashboard');
+      return;
+    }
+
+    // Check if this plan is available
+    if (!planAvailability[planType]) {
+      toast('Premium plans coming soon! Contact us for early access.', {
+        icon: '🚀',
+        duration: 4000
+      });
       return;
     }
 
@@ -154,16 +185,34 @@ const Pricing = () => {
                 {plan.description}
               </p>
 
+              {/* Show Coming Soon badge for unavailable paid plans */}
+              {plan.type !== 'free' && planAvailability[plan.type] === false && (
+                <div className={`flex items-center justify-center space-x-2 mb-3 py-2 rounded-lg ${
+                  plan.highlighted ? 'bg-white/20' : 'bg-amber-100'
+                }`}>
+                  <Clock className={`h-4 w-4 ${plan.highlighted ? 'text-yellow-300' : 'text-amber-600'}`} />
+                  <span className={`text-sm font-medium ${plan.highlighted ? 'text-yellow-300' : 'text-amber-700'}`}>
+                    Coming Soon
+                  </span>
+                </div>
+              )}
+              
               <button
                 onClick={() => handleSubscribe(plan.type)}
                 disabled={loading || (user && user.subscription_tier === plan.type)}
                 className={`w-full py-3 rounded-lg font-semibold transition ${
                   plan.highlighted
                     ? 'bg-white text-indigo-600 hover:bg-gray-100'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    : plan.type !== 'free' && planAvailability[plan.type] === false
+                      ? 'bg-gray-400 text-white cursor-pointer hover:bg-gray-500'
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {user && user.subscription_tier === plan.type ? 'Current Plan' : plan.cta}
+                {user && user.subscription_tier === plan.type 
+                  ? 'Current Plan' 
+                  : plan.type !== 'free' && planAvailability[plan.type] === false
+                    ? 'Notify Me'
+                    : plan.cta}
               </button>
 
               <ul className="mt-8 space-y-4">
