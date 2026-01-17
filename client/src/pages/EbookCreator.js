@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import apiClient from '../config/api';
 import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { BookOpen, ArrowRight, ArrowLeft } from 'lucide-react';
+import { BookOpen, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 
 const EbookCreator = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -22,12 +24,23 @@ const EbookCreator = () => {
     tone: 'professional',
     target_audience: '',
     language: 'English',
-    template_id: null
+    template_id: null,
+    chapter_titles: []
   });
 
   useEffect(() => {
     loadTemplates();
   }, []);
+
+  // Apply template when navigating from Templates page
+  useEffect(() => {
+    if (location.state?.templateId && templates.length > 0) {
+      const template = templates.find(t => t.id === location.state.templateId);
+      if (template) {
+        applyTemplate(template);
+      }
+    }
+  }, [location.state, templates]);
 
   const loadTemplates = async () => {
     try {
@@ -36,6 +49,36 @@ const EbookCreator = () => {
     } catch (error) {
       console.error('Failed to load templates:', error);
     }
+  };
+
+  const applyTemplate = (template) => {
+    setSelectedTemplate(template);
+    
+    // Parse the template structure
+    const structure = template.structure || {};
+    const chapters = structure.chapters || [];
+    
+    setFormData(prev => ({
+      ...prev,
+      template_id: template.id,
+      topic: template.category || prev.topic,
+      description: template.description || prev.description,
+      num_chapters: chapters.length || prev.num_chapters,
+      words_per_chapter: structure.words_per_chapter || prev.words_per_chapter,
+      tone: structure.tone || prev.tone,
+      chapter_titles: chapters
+    }));
+
+    toast.success(`Template "${template.name}" applied! Customize as needed.`);
+  };
+
+  const clearTemplate = () => {
+    setSelectedTemplate(null);
+    setFormData(prev => ({
+      ...prev,
+      template_id: null,
+      chapter_titles: []
+    }));
   };
 
   const handleChange = (e) => {
@@ -102,6 +145,69 @@ const EbookCreator = () => {
           {step === 1 && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Basic Information</h2>
+              
+              {/* Selected Template Display */}
+              {selectedTemplate && (
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Sparkles className="h-5 w-5 text-indigo-600" />
+                      <div>
+                        <p className="text-sm text-indigo-600 font-medium">Using Template</p>
+                        <p className="text-lg font-semibold text-gray-900">{selectedTemplate.name}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={clearTemplate}
+                      className="text-sm text-gray-500 hover:text-red-600 transition"
+                    >
+                      Clear Template
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">{selectedTemplate.description}</p>
+                  {formData.chapter_titles.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-indigo-600 font-medium mb-1">Chapter Structure ({formData.chapter_titles.length} chapters):</p>
+                      <div className="flex flex-wrap gap-1">
+                        {formData.chapter_titles.slice(0, 5).map((title, idx) => (
+                          <span key={idx} className="text-xs bg-white px-2 py-1 rounded text-gray-600">
+                            {idx + 1}. {title}
+                          </span>
+                        ))}
+                        {formData.chapter_titles.length > 5 && (
+                          <span className="text-xs bg-white px-2 py-1 rounded text-gray-500">
+                            +{formData.chapter_titles.length - 5} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Template Selection (if no template selected) */}
+              {!selectedTemplate && templates.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Start from a Template (Optional)
+                  </label>
+                  <select
+                    onChange={(e) => {
+                      const template = templates.find(t => t.id === parseInt(e.target.value));
+                      if (template) applyTemplate(template);
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    defaultValue=""
+                  >
+                    <option value="">-- Select a template or start from scratch --</option>
+                    {templates.map(template => (
+                      <option key={template.id} value={template.id}>
+                        {template.name} ({template.category}) - {template.structure?.chapters?.length || 0} chapters
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -240,6 +346,16 @@ const EbookCreator = () => {
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Review & Generate</h2>
               
+              {/* Template Badge */}
+              {selectedTemplate && (
+                <div className="flex items-center space-x-2 mb-4">
+                  <Sparkles className="h-4 w-4 text-indigo-600" />
+                  <span className="text-sm text-indigo-600 font-medium">
+                    Using template: {selectedTemplate.name}
+                  </span>
+                </div>
+              )}
+              
               <div className="bg-gray-50 rounded-lg p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -267,6 +383,21 @@ const EbookCreator = () => {
                     <p className="font-semibold text-gray-900">{formData.language}</p>
                   </div>
                 </div>
+
+                {/* Chapter Titles Preview */}
+                {formData.chapter_titles.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-600 mb-2">Chapter Structure</p>
+                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                      {formData.chapter_titles.map((title, idx) => (
+                        <div key={idx} className="flex items-center text-sm">
+                          <span className="w-8 text-gray-400">{idx + 1}.</span>
+                          <span className="font-medium text-gray-900">{title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

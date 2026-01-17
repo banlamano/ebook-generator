@@ -62,7 +62,8 @@ exports.createEbook = async (req, res) => {
       tone,
       target_audience,
       language,
-      template_id
+      template_id,
+      chapter_titles
     } = req.body;
 
     // Validate input
@@ -71,6 +72,12 @@ exports.createEbook = async (req, res) => {
         success: false,
         message: 'Title and topic are required'
       });
+    }
+
+    // Create ebook with chapter_titles stored in metadata if from template
+    const metadata = {};
+    if (chapter_titles && Array.isArray(chapter_titles) && chapter_titles.length > 0) {
+      metadata.chapter_titles = chapter_titles;
     }
 
     // Create ebook
@@ -85,6 +92,7 @@ exports.createEbook = async (req, res) => {
       target_audience,
       language: language || 'English',
       template_id,
+      metadata: Object.keys(metadata).length > 0 ? metadata : null,
       status: 'draft'
     });
 
@@ -234,12 +242,24 @@ exports.generateContent = async (req, res) => {
     // Update status
     await ebook.update({ status: 'generating' });
 
-    // Generate table of contents
-    const toc = await aiService.generateTableOfContents(ebook);
+    // Check if template chapter titles exist in metadata
+    let toc;
+    const metadata = ebook.metadata || {};
+    
+    if (metadata.chapter_titles && Array.isArray(metadata.chapter_titles) && metadata.chapter_titles.length > 0) {
+      // Use chapter titles from template
+      toc = metadata.chapter_titles;
+      logger.info(`Using ${toc.length} chapter titles from template for ebook ${ebook.id}`);
+    } else {
+      // Generate table of contents with AI
+      toc = await aiService.generateTableOfContents(ebook);
+    }
+    
     await ebook.update({ table_of_contents: toc });
 
-    // Create chapters
-    for (let i = 0; i < ebook.num_chapters; i++) {
+    // Create chapters using the determined number (from template or ebook settings)
+    const numChapters = toc.length || ebook.num_chapters;
+    for (let i = 0; i < numChapters; i++) {
       await Chapter.create({
         ebook_id: ebook.id,
         chapter_number: i + 1,
