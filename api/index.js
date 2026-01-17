@@ -27,6 +27,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Database initialization
 let dbInitialized = false;
+let templatesSeeded = false;
 
 const initializeDatabase = async () => {
   if (dbInitialized) return true;
@@ -43,6 +44,24 @@ const initializeDatabase = async () => {
     
     dbInitialized = true;
     console.log('Database connected successfully');
+    
+    // Auto-seed templates if none exist (only once per instance)
+    if (!templatesSeeded) {
+      try {
+        const { seedTemplates } = require('../server/migrations/seed');
+        const seedResult = await seedTemplates();
+        templatesSeeded = true;
+        if (seedResult.seeded) {
+          console.log(`Auto-seeded ${seedResult.count} templates`);
+        } else {
+          console.log(`Templates already exist: ${seedResult.count}`);
+        }
+      } catch (seedError) {
+        console.error('Warning: Failed to auto-seed templates:', seedError.message);
+        // Don't fail - server can still run
+      }
+    }
+    
     return true;
   } catch (error) {
     console.error('Database connection failed:', error.message);

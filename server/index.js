@@ -6,6 +6,7 @@ const path = require('path');
 const rateLimit = require('express-rate-limit');
 const logger = require('./utils/logger');
 const { sequelize } = require('./models');
+const { seedTemplates } = require('./migrations/seed');
 
 // Load environment variables
 dotenv.config();
@@ -103,8 +104,19 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 sequelize.sync({ force: false })
-  .then(() => {
+  .then(async () => {
     logger.info('Database synchronized successfully');
+    
+    // Auto-seed templates if none exist
+    try {
+      const seedResult = await seedTemplates();
+      if (seedResult.seeded) {
+        logger.info(`Auto-seeded ${seedResult.count} templates on startup`);
+      }
+    } catch (seedError) {
+      logger.error('Warning: Failed to auto-seed templates:', seedError.message);
+      // Don't exit - server can still run, admin can add templates manually
+    }
     
     app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
