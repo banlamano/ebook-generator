@@ -17,6 +17,7 @@ const EbookEditor = () => {
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [editedContent, setEditedContent] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const loadEbook = async (isInitial = false) => {
     try {
@@ -69,6 +70,17 @@ const EbookEditor = () => {
       setEditedContent(selectedChapter.content || '');
     }
   }, [selectedChapter]);
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showExportMenu && !event.target.closest('.export-menu-container')) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showExportMenu]);
 
   const saveChapter = async () => {
     if (!selectedChapter) return;
@@ -189,25 +201,30 @@ const EbookEditor = () => {
                 <span>{showPreview ? 'Edit' : 'Preview'}</span>
               </button>
 
-              <div className="relative group">
-                <button className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+              <div className="relative export-menu-container">
+                <button 
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                >
                   <Download className="h-4 w-4" />
                   <span>Export</span>
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden group-hover:block z-10">
-                  <button onClick={() => exportEbook('pdf')} className="w-full text-left px-4 py-2 hover:bg-gray-100">
-                    Export as PDF
-                  </button>
-                  <button onClick={() => exportEbook('epub')} className="w-full text-left px-4 py-2 hover:bg-gray-100">
-                    Export as EPUB
-                  </button>
-                  <button onClick={() => exportEbook('mobi')} className="w-full text-left px-4 py-2 hover:bg-gray-100">
-                    Export as MOBI
-                  </button>
-                  <button onClick={() => exportEbook('docx')} className="w-full text-left px-4 py-2 hover:bg-gray-100">
-                    Export as DOCX
-                  </button>
-                </div>
+                {showExportMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10 border border-gray-200">
+                    <button onClick={() => { exportEbook('pdf'); setShowExportMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-gray-100">
+                      Export as PDF
+                    </button>
+                    <button onClick={() => { exportEbook('epub'); setShowExportMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-gray-100">
+                      Export as EPUB
+                    </button>
+                    <button onClick={() => { exportEbook('mobi'); setShowExportMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-gray-100">
+                      Export as MOBI
+                    </button>
+                    <button onClick={() => { exportEbook('docx'); setShowExportMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-gray-100">
+                      Export as DOCX
+                    </button>
+                  </div>
+                )}
               </div>
 
               <button
