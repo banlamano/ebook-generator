@@ -1,8 +1,18 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "build",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
+  "installCommand": "npm install --prefix client --legacy-peer-deps",
+  "buildCommand": "npm run build --prefix client",
+  "outputDirectory": "client/build",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
   ]
 }
